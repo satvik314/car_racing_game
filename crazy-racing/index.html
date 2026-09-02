@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sunset Overdrive — Highway</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23e76f51'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="vignette"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="top-left">
+    <div class="label">SCORE</div>
+    <div id="score">000000</div>
+    <div id="mult">x1</div>
+  </div>
+  <div id="top-right">
+    <div class="label">DISTANCE</div>
+    <div id="dist">0.0 km</div>
+  </div>
+  <div id="nitro-box">
+    <div class="label">NITRO <span class="key-hint">[SPACE]</span></div>
+    <div id="nitro-bar"><div id="nitro-fill"></div></div>
+  </div>
+  <canvas id="gauge" width="200" height="200"></canvas>
+  <div id="mute-tag" class="hidden">MUTED [M]</div>
+</div>
+
+<!-- popups -->
+<div id="popups"></div>
+
+<!-- touch controls -->
+<div id="touch" class="hidden">
+  <div id="touch-left">
+    <div class="tbtn" id="t-left">&#9664;</div>
+    <div class="tbtn" id="t-right">&#9654;</div>
+  </div>
+  <div id="touch-right">
+    <div class="tbtn small" id="t-drift">DRIFT</div>
+    <div class="tbtn small" id="t-nitro">NITRO</div>
+    <div class="tbtn" id="t-brake">BRK</div>
+    <div class="tbtn" id="t-gas">GAS</div>
+  </div>
+</div>
+
+<!-- start menu -->
+<div id="menu" class="overlay">
+  <div class="panel">
+    <div class="title-top">SUNSET</div>
+    <div class="title-main">OVERDRIVE</div>
+    <div class="title-sub">HIGHWAY</div>
+    <div class="controls">
+      <div><span class="key">&#8592; &#8594; / A D</span> steer</div>
+      <div><span class="key">&#8593; / W</span> gas &nbsp; <span class="key">&#8595; / S</span> brake</div>
+      <div><span class="key">SHIFT</span> drift &nbsp; <span class="key">SPACE</span> nitro</div>
+      <div><span class="key">P</span> pause &nbsp; <span class="key">M</span> mute</div>
+    </div>
+    <button id="start-btn" class="btn">START ENGINE</button>
+    <div class="hint">PRESS ENTER / TAP TO START</div>
+    <div class="best-line">BEST <span id="best">000000</span></div>
+  </div>
+</div>
+
+<!-- pause -->
+<div id="pause" class="overlay hidden">
+  <div class="panel">
+    <div class="pause-title">PAUSED</div>
+    <div class="hint">PRESS P / ESC / ENTER TO RESUME</div>
+  </div>
+</div>
+
+<!-- game over -->
+<div id="gameover" class="overlay hidden">
+  <div class="panel">
+    <div class="gameover-title">WRECKED</div>
+    <div id="new-best" class="hidden">NEW BEST!</div>
+    <div class="final-row"><span>SCORE</span><span id="final-score">000000</span></div>
+    <div class="final-row dim"><span>BEST</span><span id="final-best">000000</span></div>
+    <button id="restart-btn" class="btn">RESTART</button>
+    <div class="hint">PRESS ENTER / TAP TO RESTART</div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
