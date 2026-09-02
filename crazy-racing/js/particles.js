@@ -84,7 +84,7 @@ class Pool {
       vel[i3 + 2] *= dr;
       pos[i3] += vel[i3] * dt;
       pos[i3 + 1] += vel[i3 + 1] * dt;
-      pos[i3 + 2] += (vel[i3 + 2] + worldSpeed) * dt; // world scroll
+      pos[i3 + 2] += (vel[i3 + 2] + worldSpeed) * dt;
       const t = life[i] / this.maxLife[i];
       this.alpha[i] = t < 0.55 ? t / 0.55 : 1;
       this.size[i] += this.grow[i] * dt;
@@ -100,8 +100,8 @@ const R = (a, b) => a + Math.random() * (b - a);
 
 export class Particles {
   constructor(scene) {
-    this.soft = new Pool(scene, 500, THREE.NormalBlending); // smoke / dust
-    this.glow = new Pool(scene, 320, THREE.AdditiveBlending); // flames / sparks
+    this.soft = new Pool(scene, 700, THREE.NormalBlending);
+    this.glow = new Pool(scene, 600, THREE.AdditiveBlending);
   }
 
   update(dt, worldSpeed) {
@@ -114,12 +114,14 @@ export class Particles {
       R(0.5, 0.9), R(0.35, 0.6), 0.45, 0.42, 0.40, -0.5, 1.2, 1.4);
   }
 
-  nitroFlame(x, y, z) {
-    this.glow.emit(x + R(-0.08, 0.08), y + R(-0.05, 0.05), z, R(-0.5, 0.5), R(-0.2, 0.5), R(6, 12),
-      R(0.18, 0.34), R(0.5, 0.9), 1.0, R(0.45, 0.7), 0.12, 0, 0.5, -1.5);
-    if (Math.random() < 0.4) {
-      this.glow.emit(x, y, z, 0, 0.2, 8, 0.22, 0.5, 1.0, 0.85, 0.4, 0, 0.5, -1.2);
-    }
+  nitroFlame(x, y, z, big = 1) {
+    this.glow.emit(x + R(-0.08, 0.08) * big, y + R(-0.05, 0.05), z, R(-0.5, 0.5), R(-0.2, 0.5), R(6, 12) * big,
+      R(0.18, 0.34) * big, R(0.5, 0.9) * big, 1.0, R(0.45, 0.7), 0.12, 0, 0.5, -1.5);
+    if (Math.random() < 0.4) this.glow.emit(x, y, z, 0, 0.2, 8 * big, 0.22 * big, 0.5 * big, 1.0, 0.85, 0.4, 0, 0.5, -1.2);
+  }
+
+  hoverGlow(x, y, z) {
+    this.glow.emit(x + R(-0.6, 0.6), y, z + R(-1, 1), 0, R(-0.5, -1.5), R(1, 3), R(0.2, 0.4), R(0.4, 0.8), 0.35, 0.85, 1.0, 0, 1, 0);
   }
 
   tireSmoke(x, y, z, strength = 1) {
@@ -150,6 +152,65 @@ export class Particles {
     for (let i = 0; i < 6; i++) {
       this.glow.emit(x + R(-0.4, 0.4), y + R(-0.2, 0.6), z, R(-1, 1), R(1, 3), R(-1, 1),
         R(0.25, 0.45), R(0.25, 0.45), 1.0, 0.85, 0.3, 2, 1, 0);
+    }
+  }
+
+  // Big fireball + smoke + debris
+  explosion(x, y, z, scale = 1) {
+    for (let i = 0; i < 26 * scale; i++) {
+      const a = Math.random() * Math.PI * 2, e = R(-0.3, 1);
+      const sp = R(2, 9) * scale;
+      this.glow.emit(x, y + 0.5, z, Math.cos(a) * sp, e * sp + 3, Math.sin(a) * sp,
+        R(0.35, 0.7), R(1.2, 2.4) * scale, 1.0, R(0.35, 0.7), 0.08, 2, 2.5, 1.5);
+    }
+    for (let i = 0; i < 18 * scale; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = R(1, 5) * scale;
+      this.soft.emit(x + R(-0.5, 0.5), y + R(0.3, 1.5), z, Math.cos(a) * sp, R(2, 6), Math.sin(a) * sp,
+        R(0.9, 1.8), R(1.0, 2.0) * scale, 0.18, 0.16, 0.15, -0.6, 1.4, 2.4);
+    }
+    this.sparks(x, y, z, 30 * scale);
+  }
+
+  shieldBurst(x, y, z) {
+    for (let i = 0; i < 40; i++) {
+      const a = Math.random() * Math.PI * 2, b = R(-1, 1);
+      const sp = R(4, 10);
+      this.glow.emit(x, y + 0.9, z, Math.cos(a) * sp * Math.sqrt(1 - b * b), b * sp, Math.sin(a) * sp * Math.sqrt(1 - b * b),
+        R(0.3, 0.6), R(0.3, 0.6), 0.35, 0.85, 1.0, 0, 1.5, 0);
+    }
+  }
+
+  powerBurst(x, y, z, r, g, b) {
+    for (let i = 0; i < 30; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = R(2, 7);
+      this.glow.emit(x, y + 1.2, z, Math.cos(a) * sp, R(2, 9), Math.sin(a) * sp,
+        R(0.4, 0.9), R(0.3, 0.6), r, g, b, 6, 1, 0);
+    }
+  }
+
+  rocketTrail(x, y, z) {
+    this.glow.emit(x + R(-0.1, 0.1), y + R(-0.1, 0.1), z, R(-0.3, 0.3), R(0.2, 0.8), R(4, 8),
+      R(0.15, 0.3), R(0.4, 0.8), 1.0, R(0.5, 0.8), 0.2, 0, 1, -1);
+    this.soft.emit(x, y, z, R(-0.3, 0.3), R(0.5, 1.2), R(2, 4), R(0.5, 0.9), R(0.3, 0.6), 0.7, 0.7, 0.7, -0.4, 1, 1.6);
+  }
+
+  stomp(x, z, scale) {
+    for (let i = 0; i < 24; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = R(4, 12) * scale;
+      this.soft.emit(x + Math.cos(a) * 1.5, 0.2, z + Math.sin(a) * 1.5, Math.cos(a) * sp, R(1, 3), Math.sin(a) * sp,
+        R(0.5, 1.0), R(0.8, 1.6) * scale, 0.7, 0.62, 0.5, 2, 2, 3);
+    }
+  }
+
+  confetti(x, y, z, n = 40) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = R(1, 6);
+      const c = new THREE.Color().setHSL(Math.random(), 0.9, 0.6);
+      this.soft.emit(x + R(-2, 2), y + R(0, 3), z, Math.cos(a) * sp, R(3, 8), Math.sin(a) * sp, R(0.8, 1.6), R(0.25, 0.45), c.r, c.g, c.b, 6, 1.2, 0);
     }
   }
 }
