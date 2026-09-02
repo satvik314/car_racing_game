@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Sunset Overdrive — Highway</title>
+<title>Sunset Overdrive — CHAOS EDITION</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23e76f51'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +21,7 @@
 <body>
 <canvas id="game"></canvas>
 <div id="vignette"></div>
+<div id="flash"></div>
 
 <!-- HUD -->
 <div id="hud" class="hidden">
@@ -28,14 +29,22 @@
     <div class="label">SCORE</div>
     <div id="score">000000</div>
     <div id="mult">x1</div>
+    <div id="bonus-mult" class="hidden">2X</div>
   </div>
   <div id="top-right">
     <div class="label">DISTANCE</div>
     <div id="dist">0.0 km</div>
+    <div id="kills-line"><span class="label">WRECKS</span> <span id="kills">0</span></div>
   </div>
-  <div id="nitro-box">
-    <div class="label">NITRO <span class="key-hint">[SPACE]</span></div>
-    <div id="nitro-bar"><div id="nitro-fill"></div></div>
+  <div id="theme-toast" class="hidden"></div>
+  <div id="fx-bar"></div>
+  <div id="bottom-left">
+    <div id="shield-tag" class="hidden">&#9673; SHIELD <span id="shield-n">x1</span></div>
+    <div id="ammo" class="hidden">&#9650; ROCKETS <span id="ammo-n">x0</span> <span class="key-hint">[X / F]</span></div>
+    <div id="nitro-box">
+      <div class="label">NITRO <span class="key-hint">[SPACE]</span></div>
+      <div id="nitro-bar"><div id="nitro-fill"></div></div>
+    </div>
   </div>
   <canvas id="gauge" width="200" height="200"></canvas>
   <div id="mute-tag" class="hidden">MUTED [M]</div>
@@ -53,25 +62,55 @@
   <div id="touch-right">
     <div class="tbtn small" id="t-drift">DRIFT</div>
     <div class="tbtn small" id="t-nitro">NITRO</div>
-    <div class="tbtn" id="t-brake">BRK</div>
-    <div class="tbtn" id="t-gas">GAS</div>
+    <div class="tbtn small" id="t-fire">FIRE</div>
+    <div class="tbtn small" id="t-brake">BRK</div>
+    <div class="tbtn wide" id="t-gas">GAS</div>
   </div>
 </div>
 
-<!-- start menu -->
+<!-- start menu / garage -->
 <div id="menu" class="overlay">
-  <div class="panel">
+  <div class="panel garage">
     <div class="title-top">SUNSET</div>
     <div class="title-main">OVERDRIVE</div>
-    <div class="title-sub">HIGHWAY</div>
+    <div class="title-sub">CHAOS EDITION</div>
+
+    <div class="pickers">
+      <div class="picker" id="theme-picker">
+        <div class="picker-head"><span class="label">WORLD</span> <span class="key-hint">[&#8593; &#8595; / T]</span></div>
+        <div class="picker-row">
+          <button class="arrow" id="theme-prev">&#9664;</button>
+          <div class="picker-body">
+            <div class="pick-name" id="theme-name">SUNSET HIGHWAY</div>
+            <div class="pick-sub" id="theme-tag">Route 77, golden hour, forever.</div>
+            <div class="dots" id="theme-dots"></div>
+          </div>
+          <button class="arrow" id="theme-next">&#9654;</button>
+        </div>
+      </div>
+
+      <div class="picker" id="car-picker">
+        <div class="picker-head"><span class="label">GARAGE</span> <span class="key-hint">[&#8592; &#8594; / C]</span></div>
+        <div class="picker-row">
+          <button class="arrow" id="car-prev">&#9664;</button>
+          <div class="picker-body">
+            <div class="pick-name" id="car-name">VORTEX GT</div>
+            <div class="pick-sub"><span id="car-class">SPORTS COUPE</span></div>
+            <div class="bars" id="car-bars"></div>
+            <div class="perk" id="car-blurb">The all-rounder.</div>
+            <div class="dots" id="car-dots"></div>
+          </div>
+          <button class="arrow" id="car-next">&#9654;</button>
+        </div>
+      </div>
+    </div>
+
     <div class="controls">
-      <div><span class="key">&#8592; &#8594; / A D</span> steer</div>
-      <div><span class="key">&#8593; / W</span> gas &nbsp; <span class="key">&#8595; / S</span> brake</div>
-      <div><span class="key">SHIFT</span> drift &nbsp; <span class="key">SPACE</span> nitro</div>
-      <div><span class="key">P</span> pause &nbsp; <span class="key">M</span> mute</div>
+      <div><span class="key">&#8592; &#8594;</span> steer &nbsp; <span class="key">&#8593;</span> gas &nbsp; <span class="key">&#8595;</span> brake &nbsp; <span class="key">SHIFT</span> drift</div>
+      <div><span class="key">SPACE</span> nitro &nbsp; <span class="key">X / F</span> fire rockets &nbsp; <span class="key">P</span> pause &nbsp; <span class="key">M</span> mute</div>
     </div>
     <button id="start-btn" class="btn">START ENGINE</button>
-    <div class="hint">PRESS ENTER / TAP TO START</div>
+    <div class="hint">PRESS ENTER TO START</div>
     <div class="best-line">BEST <span id="best">000000</span></div>
   </div>
 </div>
@@ -91,8 +130,14 @@
     <div id="new-best" class="hidden">NEW BEST!</div>
     <div class="final-row"><span>SCORE</span><span id="final-score">000000</span></div>
     <div class="final-row dim"><span>BEST</span><span id="final-best">000000</span></div>
+    <div class="final-grid">
+      <div><span class="label">DISTANCE</span><b id="final-dist">0.0 km</b></div>
+      <div><span class="label">WRECKS</span><b id="final-kills">0</b></div>
+      <div><span class="label">TOP SPEED</span><b id="final-top">0</b></div>
+      <div><span class="label">WORLDS</span><b id="final-worlds">1</b></div>
+    </div>
     <button id="restart-btn" class="btn">RESTART</button>
-    <div class="hint">PRESS ENTER / TAP TO RESTART</div>
+    <div class="hint">ENTER: RESTART &nbsp;&middot;&nbsp; ESC: GARAGE</div>
   </div>
 </div>
 
